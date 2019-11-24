@@ -2,29 +2,28 @@ import datetime
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-def get_spirit(wine):
-    start_index = wine.find(':') + 1
-    spirit = wine[start_index:]
-    spirit = spirit.strip()
-    return spirit
+def get_spirit(fraction):
+    separated_spirit = fraction.split(':')
+    spirit = separated_spirit[1]
+    return spirit.strip()
 
 def get_total_wine_list(wine_description):
     total_wine_list = []
     wine_specification = {}
-    wine_description = wine_description.split('\n')
-    for wine in reversed(wine_description): # order matters!
-        if 'Название' in wine:
-            wine_specification.update({'title': get_spirit(wine)})
+    separated_description = wine_description.split('\n')
+    for fraction in reversed(separated_description): # order matters!
+        if 'Название' in fraction:
+            wine_specification['title'] = get_spirit(fraction)
             total_wine_list.append(wine_specification)
             wine_specification = {}
-        elif 'Сорт' in wine:
-            wine_specification.update({'sort': get_spirit(wine)})
-        elif 'Цена' in wine:
-            wine_specification.update({'price': get_spirit(wine)})
-        elif 'Картинка' in wine:
-            wine_specification.update({'image': get_spirit(wine)})
-        elif 'Выгодное предложение' in wine:
-            wine_specification.update({'discount': 'yes'})
+        elif 'Сорт' in fraction:
+            wine_specification['sort'] = get_spirit(fraction)
+        elif 'Цена' in fraction:
+            wine_specification['price'] = get_spirit(fraction)
+        elif 'Картинка' in fraction:
+            wine_specification['image'] = get_spirit(fraction)
+        elif 'Выгодное предложение' in fraction:
+            wine_specification['discount'] = True
     return total_wine_list
 
 
@@ -46,25 +45,26 @@ if __name__ == '__main__':
         beverages_description = file.read()
 
     beverages_description = beverages_description.split('#')
-    types_of_beverages = []
-    for type in beverages_description:
-        if len(type):
-            type_index = type.find('\n')
-            type_of_beverages = type[:type_index]
-            type_of_beverages = type_of_beverages.strip()
-            types_of_beverages.append(type_of_beverages)
+    del beverages_description[0]
+
+    kinds_of_beverages = []
+
+    for kind in beverages_description:
+        separated_kind = kind.split('\n')
+        kind_of_beverages = separated_kind[0].strip()
+        kinds_of_beverages.append(kind_of_beverages)
 
     total_beverages_info = {}
 
     for beverage in beverages_description:
-        for type in types_of_beverages:
-            if type in beverage:
+        for kind in kinds_of_beverages:
+            if kind in beverage:
                 wines_list = get_total_wine_list(beverage)
-                total_beverages_info.update({type: wines_list})
+                total_beverages_info[kind] = wines_list
 
     rendered_page = template.render(
         winery_age=winery_age,
-        types_of_beverages = types_of_beverages,
+        kinds_of_beverages = kinds_of_beverages,
         total_beverages_info = total_beverages_info,
     )
 
