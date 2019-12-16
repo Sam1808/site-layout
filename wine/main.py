@@ -42,9 +42,9 @@ if __name__ == '__main__':
     winery_age = current_year - year_of_foundation
 
     with open('action.txt', 'r', encoding='UTF-8-sig') as file:
-        beverages_description = file.read()
+        raw_data = file.read()
 
-    beverages_description = beverages_description.split('#')
+    beverages_description = raw_data.split('#')
     del beverages_description[0]
 
     kinds_of_beverages = []
