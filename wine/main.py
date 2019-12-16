@@ -44,19 +44,19 @@ if __name__ == '__main__':
     with open('action.txt', 'r', encoding='UTF-8-sig') as file:
         raw_data = file.read()
 
-    beverages_description = raw_data.split('#')
-    del beverages_description[0]
+    types_and_kinds_of_beverages = raw_data.split('#')
+    del types_and_kinds_of_beverages[0]
 
     kinds_of_beverages = []
 
-    for kind in beverages_description:
+    for kind in types_and_kinds_of_beverages:
         separated_kind = kind.split('\n')
         kind_of_beverages = separated_kind[0].strip()
         kinds_of_beverages.append(kind_of_beverages)
 
     total_beverages_info = {}
 
-    for beverage in beverages_description:
+    for beverage in types_and_kinds_of_beverages:
         for kind in kinds_of_beverages:
             if kind in beverage:
                 wines_list = get_total_wine_list(beverage)
