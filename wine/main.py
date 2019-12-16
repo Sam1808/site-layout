@@ -7,14 +7,14 @@ def get_spirit(fraction):
     spirit = separated_spirit[1]
     return spirit.strip()
 
-def get_total_wine_list(wine_description):
-    total_wine_list = []
+def get_wines_of_this_kind(wine_description):
+    wines = []
     wine_specification = {}
     separated_description = wine_description.split('\n')
     for fraction in reversed(separated_description): # order matters!
         if 'Название' in fraction:
             wine_specification['title'] = get_spirit(fraction)
-            total_wine_list.append(wine_specification)
+            wines.append(wine_specification)
             wine_specification = {}
         elif 'Сорт' in fraction:
             wine_specification['sort'] = get_spirit(fraction)
@@ -24,7 +24,7 @@ def get_total_wine_list(wine_description):
             wine_specification['image'] = get_spirit(fraction)
         elif 'Выгодное предложение' in fraction:
             wine_specification['discount'] = True
-    return total_wine_list
+    return wines
 
 
 if __name__ == '__main__':
@@ -59,8 +59,8 @@ if __name__ == '__main__':
     for beverage in types_and_kinds_of_beverages:
         for kind in kinds_of_beverages:
             if kind in beverage:
-                wines_list = get_total_wine_list(beverage)
-                total_beverages_info[kind] = wines_list
+                wines = get_wines_of_this_kind(beverage)
+                total_beverages_info[kind] = wines
 
     total_beverages_items = total_beverages_info.items()
 
