@@ -62,10 +62,11 @@ if __name__ == '__main__':
                 wines_list = get_total_wine_list(beverage)
                 total_beverages_info[kind] = wines_list
 
+    total_beverages_items = total_beverages_info.items()
+
     rendered_page = template.render(
         winery_age=winery_age,
-        kinds_of_beverages = kinds_of_beverages,
-        total_beverages_info = total_beverages_info,
+        total_beverages_items = total_beverages_items,
     )
 
     with open('index.html', 'w', encoding="utf8") as file:
