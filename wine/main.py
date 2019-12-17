@@ -44,29 +44,29 @@ if __name__ == '__main__':
     with open('action.txt', 'r', encoding='UTF-8-sig') as file:
         raw_data = file.read()
 
-    types_and_kinds_of_beverages = raw_data.split('#')
-    del types_and_kinds_of_beverages[0]
+    assortment_of_beverages = raw_data.split('#')
+    del assortment_of_beverages[0]
 
     kinds_of_beverages = []
 
-    for kind in types_and_kinds_of_beverages:
+    for kind in assortment_of_beverages:
         separated_kind = kind.split('\n')
         kind_of_beverages = separated_kind[0].strip()
         kinds_of_beverages.append(kind_of_beverages)
 
     total_beverages_info = {}
 
-    for beverage in types_and_kinds_of_beverages:
+    for beverage in assortment_of_beverages:
         for kind in kinds_of_beverages:
             if kind in beverage:
                 wines = get_wines_of_this_kind(beverage)
                 total_beverages_info[kind] = wines
 
-    total_beverages_items = total_beverages_info.items()
+    total_beverages_elements = total_beverages_info.items()
 
     rendered_page = template.render(
         winery_age=winery_age,
-        total_beverages_items = total_beverages_items,
+        total_beverages_elements = total_beverages_elements,
     )
 
     with open('index.html', 'w', encoding="utf8") as file:
