@@ -1,3 +1,4 @@
+import argparse
 import datetime
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -29,6 +30,10 @@ def get_wines_of_this_kind(wine_description):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description='Site of elite wines')
+    parser.add_argument("TEXT_FILE", help="path to txt file with beverages description")
+    args = parser.parse_args()
+
     env = Environment(
         loader=FileSystemLoader('.'),
         autoescape=select_autoescape(['html', 'xml'])
@@ -41,8 +46,18 @@ if __name__ == '__main__':
     current_year = now.year
     winery_age = current_year - year_of_foundation
 
-    with open('action.txt', 'r', encoding='UTF-8-sig') as file:
-        raw_data = file.read()
+    txt_file = args.TEXT_FILE
+
+    try:
+        with open(txt_file, 'r', encoding='UTF-8-sig') as file:
+            raw_data = file.read()
+    except FileNotFoundError:
+        print('''
+        Can not find txt file or wrong file path.
+        Please read README.MD.
+        ''')
+        exit()
+
 
     assortment_of_beverages = raw_data.split('#')
     del assortment_of_beverages[0]
