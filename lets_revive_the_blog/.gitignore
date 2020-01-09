@@ -2,5 +2,5 @@
 /blog/__pycache__/*
 /blog/migations/__pycache__/*
 /sensive_blog/.env
-.media
+/media/*
 *.sqlite3
