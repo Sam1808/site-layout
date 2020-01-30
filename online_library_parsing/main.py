@@ -1,3 +1,4 @@
+
 import json
 import os
 import requests
@@ -9,23 +10,28 @@ def get_book_raw_catalog(url, page_id):
     page_url=f'{url}{page_id}/'
     response = requests.get(page_url)
     soup = BeautifulSoup(response.text, 'lxml')
-    book_catalog = soup.find_all('div', class_='bookimage')
+    book_catalog_selector = '.bookimage a'
+    book_catalog = soup.select(book_catalog_selector)
     return book_catalog
 
 def get_book_properties(soup):
-    book = soup.find('h1')
+    book_properties_selector = 'h1'
+    book = soup.select_one(book_properties_selector)
     separated_book = book.text.split('::')
     book_title = separated_book[0].strip()
     book_author = separated_book[1].strip()
     return book_title, book_author
 
 def get_book_image_url(soup):
-    book_image = soup.find('div', class_='bookimage').img['src']
-    book_image_url = urljoin('http://tululu.org', book_image)
+    book_image_selector = '.bookimage img'
+    book_image = soup.select_one(book_image_selector)
+    book_image_src = book_image['src']
+    book_image_url = urljoin('http://tululu.org', book_image_src)
     return book_image_url
 
 def get_book_comments(soup):
-    book_comments = soup.find_all('div', class_='texts')
+    book_comments_selector = '.texts'
+    book_comments = soup.select(book_comments_selector)
     comments_scroll = []
     for comment in book_comments:
         comment_text = comment.text
@@ -36,8 +42,8 @@ def get_book_comments(soup):
     return comments_scroll
 
 def get_book_genres(soup):
-    book_genres_raw = soup.find('span', class_='d_book')
-    book_genres = book_genres_raw.find_all('a')
+    book_genres_selector = 'span.d_book a'
+    book_genres = soup.select(book_genres_selector)
     genres_scroll = []
     for genre in book_genres:
         genres_scroll.append(genre.text)
@@ -67,15 +73,17 @@ def download_txt(url, filename, folder='books/'):
 
 if __name__ == '__main__':
 
+
+
     books_description = []
 
-    for page_id in range(1,5):
+    for page_id in range(1,2):
 
         url = 'http://tululu.org/l55/'
         book_catalog = get_book_raw_catalog(url,page_id)
 
         for book in book_catalog:
-            book_url = book.a['href']
+            book_url = book['href']
             book_abs_url = urljoin('http://tululu.org', book_url)
 
             response = requests.get(book_abs_url, allow_redirects=False)
@@ -106,7 +114,7 @@ if __name__ == '__main__':
                 'comments': comments,
                 'genres': genres,
             }
-            print(book_description) #TODO - delete
+
             books_description.append(book_description)
 
     with open('books_description.json', 'w') as file:
