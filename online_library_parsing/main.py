@@ -1,7 +1,8 @@
-
+import argparse
 import json
 import os
 import requests
+from requests.exceptions import ConnectionError
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 from urllib.parse import urljoin
@@ -9,6 +10,8 @@ from urllib.parse import urljoin
 def get_book_raw_catalog(url, page_id):
     page_url=f'{url}{page_id}/'
     response = requests.get(page_url)
+    if response.status_code != 200:
+        return None
     soup = BeautifulSoup(response.text, 'lxml')
     book_catalog_selector = '.bookimage a'
     book_catalog = soup.select(book_catalog_selector)
@@ -73,14 +76,58 @@ def download_txt(url, filename, folder='books/'):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description='Book downloader (tululu.org)')
+    parser.add_argument('--start_page', help='First page')
+    parser.add_argument('--end_page', help='End page')
+    parser.add_argument('--url', help='Url of section to download')
+    args = parser.parse_args()
 
+    if not args.start_page:
+        args.start_page = 1
+
+    if not args.end_page:
+        args.end_page = 1000
+
+    if not args.url:
+        url = 'http://tululu.org/l55/'
+
+    # --------start TESTS -------
+
+    try:
+        response = requests.get(url, allow_redirects=False)
+        response.raise_for_status()
+    except ConnectionError:
+        print ('Error Connection')
+        exit()
+
+    if response.status_code != 200:
+        print('URL error status')
+        exit()
+
+    try:
+        start_page = int(args.start_page)
+    except ValueError:
+        print ('Start page - Only digit')
+        exit()
+
+    try:
+        end_page = int(args.end_page)
+    except ValueError:
+        print ('End page - Only digit')
+        exit()
+
+    # --------end TESTS -------
 
     books_description = []
 
-    for page_id in range(1,2):
+    for page_id in range(start_page,end_page):
 
-        url = 'http://tululu.org/l55/'
         book_catalog = get_book_raw_catalog(url,page_id)
+
+        if not book_catalog:
+            print(f'Last page is {page_id -1}')
+            print('No pages')
+            break
 
         for book in book_catalog:
             book_url = book['href']
