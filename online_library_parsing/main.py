@@ -1,15 +1,16 @@
 import argparse
 import json
+import logging
 import os
 import requests
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, HTTPError
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 from urllib.parse import urljoin
 
 def get_book_raw_catalog(url, page_id):
     page_url=f'{url}{page_id}/'
-    response = requests.get(page_url)
+    response = requests.get(page_url, allow_redirects=False)
     if response.status_code != 200:
         return None
     soup = BeautifulSoup(response.text, 'lxml')
@@ -69,6 +70,7 @@ def download_txt(url, filename, folder='books/'):
     book_path = os.path.join(folder, book_filename)
     response = requests.get(url, allow_redirects=False)
     if response.status_code != 200:
+        logging.info(f'Book: "{book_filename}" not available... Skiping...')
         return None
     with open(book_path, 'wb') as file:
         file.write(response.content)
@@ -80,6 +82,7 @@ if __name__ == '__main__':
     parser.add_argument('--start_page', help='First page')
     parser.add_argument('--end_page', help='End page')
     parser.add_argument('--url', help='Url of section to download')
+    parser.add_argument('--showlog', help='YES - to show log message')
     args = parser.parse_args()
 
     if not args.start_page:
@@ -88,8 +91,12 @@ if __name__ == '__main__':
     if not args.end_page:
         args.end_page = 1000
 
-    if not args.url:
+    url = args.url
+    if not url:
         url = 'http://tululu.org/l55/'
+
+    if args.showlog:
+        logging.basicConfig(level=logging.INFO)
 
     # --------start TESTS -------
 
@@ -97,23 +104,30 @@ if __name__ == '__main__':
         response = requests.get(url, allow_redirects=False)
         response.raise_for_status()
     except ConnectionError:
-        print ('Error Connection')
+        logging.error(f'Connection Error: Please check your Internet connection and try later.')
+        exit()
+    except HTTPError:
+        logging.error(f'HTTP Error: Please check your URL and try again.')
         exit()
 
     if response.status_code != 200:
-        print('URL error status')
+        logging.error(f'URL Error: Please check your URL and try again.')
         exit()
 
     try:
         start_page = int(args.start_page)
     except ValueError:
-        print ('Start page - Only digit')
+        logging.error(f'Start page error: only digits may be used.')
         exit()
 
     try:
         end_page = int(args.end_page)
     except ValueError:
-        print ('End page - Only digit')
+        logging.error(f'End page error: only digits may be used.')
+        exit()
+
+    if end_page <= start_page:
+        logging.error(f'Start page number can not be less or equal than End page number.')
         exit()
 
     # --------end TESTS -------
@@ -125,8 +139,7 @@ if __name__ == '__main__':
         book_catalog = get_book_raw_catalog(url,page_id)
 
         if not book_catalog:
-            print(f'Last page is {page_id -1}')
-            print('No pages')
+            logging.info(f'There are no any pages with books to download. Last page number is {page_id -1}.')
             break
 
         for book in book_catalog:
@@ -136,6 +149,7 @@ if __name__ == '__main__':
             response = requests.get(book_abs_url, allow_redirects=False)
             response.raise_for_status()
             if response.status_code != 200:
+                logging.info(f'URL {book_url} not available... Skiping...')
                 continue
 
             soup = BeautifulSoup(response.text, 'lxml')
@@ -152,7 +166,6 @@ if __name__ == '__main__':
             comments = get_book_comments(soup)
             genres = get_book_genres(soup)
 
-
             book_description = {
                 'title': book_title,
                 'book_author': book_author,
@@ -161,6 +174,8 @@ if __name__ == '__main__':
                 'comments': comments,
                 'genres': genres,
             }
+
+            print(f'|-> Download: {book_path}')
 
             books_description.append(book_description)
 
