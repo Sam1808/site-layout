@@ -89,7 +89,7 @@ if __name__ == '__main__':
         args.start_page = 1
 
     if not args.end_page:
-        args.end_page = 1000
+        args.end_page = 10000
 
     url = args.url
     if not url:
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         exit()
 
     if end_page <= start_page:
-        logging.error(f'Start page number can not be less or equal than End page number.')
+        logging.error(f'End page number can not be less or equal than Start page number.')
         exit()
 
     # --------end TESTS -------
