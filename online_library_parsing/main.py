@@ -48,9 +48,7 @@ def get_book_comments(soup):
 def get_book_genres(soup):
     book_genres_selector = 'span.d_book a'
     book_genres = soup.select(book_genres_selector)
-    genres_scroll = []
-    for genre in book_genres:
-        genres_scroll.append(genre.text)
+    genres_scroll = [genre.text for genre in book_genres]
     return genres_scroll
 
 def download_image(url, folder='images/'):
