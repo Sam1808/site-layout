@@ -51,7 +51,7 @@ def get_book_genres(soup):
     genres_scroll = [genre.text for genre in book_genres]
     return genres_scroll
 
-def download_image(url, folder='images/'):
+def download_image(url, folder='images'):
     os.makedirs(folder, exist_ok=True)
     image_filename = url.split('/')[-1]
     image_path = os.path.join(folder, image_filename)
@@ -62,7 +62,7 @@ def download_image(url, folder='images/'):
         file.write(response.content)
     return image_path
 
-def download_txt(url, filename, folder='books/'):
+def download_txt(url, filename, folder='books'):
     os.makedirs(folder, exist_ok=True)
     book_filename = '{}.txt'.format(sanitize_filename(filename))
     book_path = os.path.join(folder, book_filename)
@@ -77,22 +77,13 @@ def download_txt(url, filename, folder='books/'):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Book downloader (tululu.org)')
-    parser.add_argument('--start_page', help='First page')
-    parser.add_argument('--end_page', help='End page')
-    parser.add_argument('--url', help='Url of section to download')
+    parser.add_argument('--start_page', default=1, help='First page (default 1)')
+    parser.add_argument('--end_page', default=10000, help='End page (default 10000)')
+    parser.add_argument('--url', default='http://tululu.org/l55/', help='Url of section to download (default url http://tululu.org/l55/ )')
     parser.add_argument('--showlog', help='YES - to show log message')
     args = parser.parse_args()
 
-    if not args.start_page:
-        args.start_page = 1
-
-    if not args.end_page:
-        args.end_page = 10000
-
     url = args.url
-    if not url:
-        url = 'http://tululu.org/l55/'
-
     if args.showlog:
         logging.basicConfig(level=logging.INFO)
 
@@ -114,14 +105,9 @@ if __name__ == '__main__':
 
     try:
         start_page = int(args.start_page)
-    except ValueError:
-        logging.error(f'Start page error: only digits may be used.')
-        exit()
-
-    try:
         end_page = int(args.end_page)
     except ValueError:
-        logging.error(f'End page error: only digits may be used.')
+        logging.error(f'Number of page error: only digits may be used.')
         exit()
 
     if end_page <= start_page:
@@ -133,7 +119,6 @@ if __name__ == '__main__':
     books_description = []
 
     for page_id in range(start_page,end_page):
-
         book_catalog = get_book_raw_catalog(url,page_id)
 
         if not book_catalog:
@@ -143,7 +128,6 @@ if __name__ == '__main__':
         for book in book_catalog:
             book_url = book['href']
             book_abs_url = urljoin('http://tululu.org', book_url)
-
             response = requests.get(book_abs_url, allow_redirects=False)
             response.raise_for_status()
             if response.status_code != 200:
@@ -153,7 +137,6 @@ if __name__ == '__main__':
             soup = BeautifulSoup(response.text, 'lxml')
 
             book_title, book_author = get_book_properties(soup)
-
             book_image_url = get_book_image_url(soup)
             img_src = download_image(book_image_url)
 
@@ -172,9 +155,7 @@ if __name__ == '__main__':
                 'comments': comments,
                 'genres': genres,
             }
-
             print(f'|-> Download: {book_path}')
-
             books_description.append(book_description)
 
     with open('books_description.json', 'w') as file:
