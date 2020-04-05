@@ -26,11 +26,11 @@ def get_book_properties(soup):
     book_author = separated_book[1].strip()
     return book_title, book_author
 
-def get_book_image_url(soup):
+def get_book_image_url(soup, book_abs_url):
     book_image_selector = '.bookimage img'
     book_image = soup.select_one(book_image_selector)
     book_image_src = book_image['src']
-    book_image_url = urljoin('http://tululu.org', book_image_src)
+    book_image_url = urljoin(book_abs_url, book_image_src)
     return book_image_url
 
 def get_book_comments(soup):
@@ -57,6 +57,7 @@ def download_image(url, folder='images'):
     image_path = os.path.join(folder, image_filename)
     response = requests.get(url, allow_redirects=False)
     if response.status_code != 200:
+        logging.error(f'Wrong image URL. Skipping image...')
         return None
     with open(image_path, 'wb') as file:
         file.write(response.content)
@@ -68,7 +69,7 @@ def download_txt(url, filename, folder='books'):
     book_path = os.path.join(folder, book_filename)
     response = requests.get(url, allow_redirects=False)
     if response.status_code != 200:
-        logging.info(f'Book: "{book_filename}" not available... Skiping...')
+        logging.info(f'Book: "{book_filename}" not available... Skipping book...')
         return None
     with open(book_path, 'wb') as file:
         file.write(response.content)
@@ -134,10 +135,11 @@ if __name__ == '__main__':
                 logging.info(f'URL {book_url} not available... Skiping...')
                 continue
 
+
             soup = BeautifulSoup(response.text, 'lxml')
 
             book_title, book_author = get_book_properties(soup)
-            book_image_url = get_book_image_url(soup)
+            book_image_url = get_book_image_url(soup, book_abs_url)
             img_src = download_image(book_image_url)
 
             book_id = str(book_url[2:])
